@@ -1,0 +1,54 @@
+<?xml version = "1.0" encoding = "UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:jms="http://www.springframework.org/schema/jms"
+	xmlns:amq="http://activemq.apache.org/schema/core"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+   http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+   http://www.springframework.org/schema/context
+   http://www.springframework.org/schema/context/spring-context-3.0.xsd 
+   http://www.springframework.org/schema/jms 
+   http://www.springframework.org/schema/jms/spring-jms.xsd
+   http://activemq.apache.org/schema/core 
+   http://activemq.apache.org/schema/core/activemq-core.xsd">
+
+	<context:component-scan
+		base-package="springjdbctemplate" />
+
+	<!-- <bean id= "jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate"> 
+		<property name="dataSource" ref="dataSource"></property> </bean> <bean id="dataSource" 
+		class = "org.springframework.jdbc.datasource.DriverManagerDataSource"> <property 
+		name = "driverClassName" value = "com.mysql.jdbc.Driver"/> <property name 
+		= "url" value = "jdbc:mysql://localhost:3306/TEST"/> <property name = "username" 
+		value = "root"/> <property name = "password" value = "admin"/> </bean> -->
+	
+	<bean id="connectionFactory"
+		class="org.apache.activemq.ActiveMQConnectionFactory">
+		<property name="brokerURL" value="tcp://localhost:61616" />
+	</bean>
+	
+	<bean id="springJMSPublisher" class="springjms.topicdemo.SpringJMSPublisher">
+	</bean>
+
+	<bean id="springJMSSubscriber" class="springjms.topicdemo.SpringJMSSubscriber">
+	</bean>
+	
+	<bean id="jmsTemplateTopic"
+		class="org.springframework.jms.core.JmsTemplate">
+		<property name="connectionFactory" ref="connectionFactory" />
+		<property name="receiveTimeout" value="10000" />
+		<property name="defaultDestination" ref="messageTopic3" />
+	</bean>
+	
+	<amq:topic id="messageTopic3" physicalName="messageTopic3" />
+	
+	<jms:listener-container
+		connection-factory="connectionFactory">
+		<jms:listener destination="messageTopic3"
+			ref="myTopicListener" />
+	</jms:listener-container>
+
+	<bean id="myTopicListener" class="springjms.topicdemo.MyTopicListener" />
+
+</beans>
